@@ -23,7 +23,10 @@ from typing import Any, cast
 
 @contextmanager
 def add_pipeline_analysis_context(
-    spark: SparkSession, dataflow_graph_id: str, flow_name: Optional[str]
+    spark: SparkSession,
+    dataflow_graph_id: Optional[str],
+    flow_name: Optional[str],
+    definition_path: Optional[str],
 ) -> Generator[None, None, None]:
     """
     Context manager that add PipelineAnalysisContext extension to the user context
@@ -38,7 +41,9 @@ def add_pipeline_analysis_context(
         from google.protobuf import any_pb2
 
         analysis_context = pb2.PipelineAnalysisContext(
-            dataflow_graph_id=dataflow_graph_id, flow_name=flow_name
+            dataflow_graph_id=dataflow_graph_id,
+            flow_name=flow_name,
+            definition_path=definition_path,
         )
         extension = any_pb2.Any()
         extension.Pack(analysis_context)

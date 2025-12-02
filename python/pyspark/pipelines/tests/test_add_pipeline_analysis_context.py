@@ -29,7 +29,12 @@ if should_test_connect:
 @unittest.skipIf(not should_test_connect, connect_requirement_message)
 class AddPipelineAnalysisContextTests(ReusedConnectTestCase):
     def test_add_pipeline_analysis_context_with_flow_name(self):
-        with add_pipeline_analysis_context(self.spark, "test_dataflow_graph_id", "test_flow_name"):
+        with add_pipeline_analysis_context(
+            self.spark,
+            dataflow_graph_id="test_dataflow_graph_id",
+            flow_name="test_flow_name",
+            definition_path=None,
+        ):
             import pyspark.sql.connect.proto as pb2
 
             thread_local_extensions = self.spark.client.thread_local.user_context_extensions
@@ -44,7 +49,12 @@ class AddPipelineAnalysisContextTests(ReusedConnectTestCase):
         self.assertEqual(len(thread_local_extensions_after), 0)
 
     def test_add_pipeline_analysis_context_without_flow_name(self):
-        with add_pipeline_analysis_context(self.spark, "test_dataflow_graph_id", None):
+        with add_pipeline_analysis_context(
+            self.spark,
+            dataflow_graph_id="test_dataflow_graph_id",
+            flow_name=None,
+            definition_path=None,
+        ):
             import pyspark.sql.connect.proto as pb2
 
             thread_local_extensions = self.spark.client.thread_local.user_context_extensions
@@ -62,9 +72,17 @@ class AddPipelineAnalysisContextTests(ReusedConnectTestCase):
     def test_nested_add_pipeline_analysis_context(self):
         import pyspark.sql.connect.proto as pb2
 
-        with add_pipeline_analysis_context(self.spark, "test_dataflow_graph_id_1", flow_name=None):
+        with add_pipeline_analysis_context(
+            self.spark,
+            dataflow_graph_id="test_dataflow_graph_id_1",
+            flow_name=None,
+            definition_path="some-path.py",
+        ):
             with add_pipeline_analysis_context(
-                self.spark, "test_dataflow_graph_id_2", flow_name="test_flow_name"
+                self.spark,
+                dataflow_graph_id="test_dataflow_graph_id_2",
+                flow_name="test_flow_name",
+                definition_path="some-path.py",
             ):
                 thread_local_extensions = self.spark.client.thread_local.user_context_extensions
                 self.assertEqual(len(thread_local_extensions), 2)
@@ -79,6 +97,7 @@ class AddPipelineAnalysisContextTests(ReusedConnectTestCase):
                 extension_2.Unpack(context_2)
                 self.assertEqual(context_2.dataflow_graph_id, "test_dataflow_graph_id_2")
                 self.assertEqual(context_2.flow_name, "test_flow_name")
+                self.assertEqual(context_2.definition_path, "some-path.py")
             thread_local_extensions_after_1 = self.spark.client.thread_local.user_context_extensions
             self.assertEqual(len(thread_local_extensions_after_1), 1)
             _, extension_3 = thread_local_extensions_after_1[0]
@@ -86,6 +105,7 @@ class AddPipelineAnalysisContextTests(ReusedConnectTestCase):
             extension_3.Unpack(context_3)
             self.assertEqual(context_3.dataflow_graph_id, "test_dataflow_graph_id_1")
             self.assertEqual(context_3.flow_name, "")
+            self.assertEqual(context_3.definition_path, "some-path.py")
         thread_local_extensions_after_2 = self.spark.client.thread_local.user_context_extensions
         self.assertEqual(len(thread_local_extensions_after_2), 0)
 

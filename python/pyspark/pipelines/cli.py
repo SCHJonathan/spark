@@ -252,7 +252,10 @@ def register_definitions(
                             module_spec.loader is not None
                         ), f"Module spec has no loader for {file}"
                         with add_pipeline_analysis_context(
-                            spark=spark, dataflow_graph_id=dataflow_graph_id, flow_name=None
+                            spark=spark,
+                            dataflow_graph_id=dataflow_graph_id,
+                            flow_name=None,
+                            definition_path=str(file),
                         ):
                             with block_session_mutations():
                                 module_spec.loader.exec_module(module)
